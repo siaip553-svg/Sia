@@ -32,10 +32,12 @@ jobs:
       - name: Find project
         run: |
           PROJECT_DIR=$(dirname "$(find build-source -name package.json -type f -print -quit)")
+
           if [ -z "$PROJECT_DIR" ]; then
             echo "ERROR: package.json was not found inside the ZIP."
             exit 1
           fi
+
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
           echo "Found project at: $PROJECT_DIR"
 
@@ -48,6 +50,11 @@ jobs:
         run: |
           cd "$PROJECT_DIR"
           npm install
+
+      - name: Install React TypeScript definitions
+        run: |
+          cd "$PROJECT_DIR"
+          npm install --save-dev @types/react @types/react-dom
 
       - name: Build
         run: |
