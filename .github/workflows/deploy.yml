@@ -29,19 +29,36 @@ jobs:
           mkdir build-source
           unzip -q SIA_SKILL_OS.zip -d build-source
 
+      - name: Find project
+        run: |
+          PROJECT_DIR=$(dirname "$(find build-source -name package.json -type f -print -quit)")
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "ERROR: package.json was not found inside the ZIP."
+            exit 1
+          fi
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+          echo "Found project at: $PROJECT_DIR"
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache-dependency-path: build-source/package.json
+          node-version: 22
 
       - name: Install dependencies
-        working-directory: build-source
-        run: npm install
+        run: |
+          cd "$PROJECT_DIR"
+          npm install
 
       - name: Build
-        working-directory: build-source
-        run: npm run build
+        run: |
+          cd "$PROJECT_DIR"
+          npm run build
+
+      - name: Prepare Pages artifact
+        run: |
+          rm -rf site
+          mkdir site
+          cp -R "$PROJECT_DIR/dist/." site/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -49,7 +66,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build-source/dist
+          path: site
 
   deploy:
     environment:
